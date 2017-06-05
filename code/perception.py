@@ -17,34 +17,6 @@ def color_thresh(img, rgb_thresh=(160, 160, 160)):
     # Return the binary image
     return color_select
 
-#def color_thresh_navigable(img, rgb_thresh=(160, 160, 160)):
-#    # Create an array of zeros same xy size as img, but single channel
-#    color_select = np.zeros_like(img[:,:,0])
-#    # Require that each pixel be above all three threshold values in RGB
-#    # above_thresh will now contain a boolean array with "True"
-#    # where threshold was met
-#    above_thresh = (img[:,:,0] >= rgb_thresh[0]) \
-#                & (img[:,:,1] >= rgb_thresh[1]) \
-#                & (img[:,:,2] >= rgb_thresh[2])
-#    # Index the array of zeros with the boolean array and set to 1
-#    color_select[above_thresh] = 1
-#    # Return the binary image
-#    return color_select
-
-#def color_thresh_obstacle(img, rgb_thresh=(160, 160, 160)):
-#    # Create an array of zeros same xy size as img, but single channel
-#    color_select = np.zeros_like(img[:,:,0])
-#    # Require that each pixel be above all three threshold values in RGB
-#    # above_thresh will now contain a boolean array with "True"
-#    # where threshold was met
-#    above_thresh = (img[:,:,0] < rgb_thresh[0]) \
-#                & (img[:,:,1] < rgb_thresh[1]) \
-#                & (img[:,:,2] < rgb_thresh[2])
-#    # Index the array of zeros with the boolean array and set to 1
-#    color_select[above_thresh] = 1
-#    # Return the binary image
-#    return color_select
-
 def color_thresh_rock(img):
     # Create an array of zeros same xy size as img, but single channel
     color_select_rgb = np.zeros_like(img[:,:,0])
@@ -85,7 +57,6 @@ def to_polar_coords(x_pixel, y_pixel):
 
 # Define a function to apply a rotation to pixel positions
 def rotate_pix(xpix, ypix, yaw):
-    # TODO:
     # Convert yaw to radians
     # Apply a rotation
     yaw_rad = yaw * np.pi / 180
@@ -96,7 +67,6 @@ def rotate_pix(xpix, ypix, yaw):
 
 # Define a function to perform a translation
 def translate_pix(xpix_rot, ypix_rot, xpos, ypos, scale): 
-    # TODO:
     # Apply a scaling and a translation
     xpix_translated = np.int_(xpos + (xpix_rot / scale))
     ypix_translated = np.int_(ypos + (ypix_rot / scale))
@@ -128,7 +98,6 @@ def perspect_transform(img, src, dst):
 # Apply the above functions in succession and update the Rover state accordingly
 def perception_step(Rover):
     # Perform perception steps to update Rover()
-    # TODO: 
     # NOTE: camera image is coming to you in Rover.img
     # 1) Define source and destination points for perspective transform
     # 2) Apply perspective transform
@@ -179,6 +148,7 @@ def perception_step(Rover):
     xpix_rock, ypix_rock = rover_coords(colorrock)
     scale = 10
     
+    # TODO: Verify whether this works
     navigable_x_world, navigable_y_world = pix_to_world(xpix_navigable, 
                                                         ypix_navigable,     
                                                         rover_xpos, 
@@ -206,7 +176,23 @@ def perception_step(Rover):
     Rover.worldmap[navigable_y_world, navigable_x_world, 2] += 1 #blue color is navigable
     
     dist, angles = to_polar_coords(xpix_navigable, ypix_navigable)
-    Rover.nav_dists = dist
-    Rover.nav_angles = angles
+    dist_to_rock, angles_to_rock = to_polar_coords(xpix_rock, ypix_rock)
+    
+    # TODO: Extra state means rock was previously found, but since flag is still true, means it failed to pick up
+#    if Rover.samples_seen = True:
+#        Rover.nav_angles = angles_to_rock
+        
+    if len(dist_to_rock) >= Rover.go_rock and not Rover.picking_up:
+        print('rock seen, and picking up:', Rover.picking_up)
+        if Rover.picking_up:
+            Rover.samples_seen_yet_pickup = False
+        else: 
+            Rover.samples_seen_yet_pickup = True
+            Rover.nav_dists = dist_to_rock
+            Rover.nav_angles = angles_to_rock
+    
+    elif not Rover.samples_seen_yet_pickup:
+        Rover.nav_dists = dist
+        Rover.nav_angles = angles
     
     return Rover
