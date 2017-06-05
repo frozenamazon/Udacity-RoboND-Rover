@@ -17,7 +17,6 @@ def color_thresh_ground(img, rgb_thresh=(160, 160, 160)):
     # Return the binary image
     return color_select
 
-<<<<<<< HEAD
 def color_thresh_obstacle(img, rgb_thresh=(160, 160, 160)):
     # Create an array of zeros same xy size as img, but single channel
     color_select = np.zeros_like(img[:,:,0])
@@ -33,6 +32,7 @@ def color_thresh_obstacle(img, rgb_thresh=(160, 160, 160)):
     return color_select
 
 def color_thresh_rock(img):
+    # Find rock in the map, it has a upper and lower rgb that is a range of yellow
     # Create an array of zeros same xy size as img, but single channel
     color_select_rgb = np.zeros_like(img[:,:,0])
     
