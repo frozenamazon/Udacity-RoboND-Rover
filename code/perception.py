@@ -48,6 +48,20 @@ def color_thresh_rock(img):
     # Return the binary image
     return color_select_rgb
 
+def color_thresh_travelled(img, rgb_thresh=(0, 0, 0)):
+    # Create an array of zeros same xy size as img, but single channel
+    color_select = np.zeros_like(img[:,:,0])
+    # Require that each pixel be above all three threshold values in RGB
+    # above_thresh will now contain a boolean array with "True"
+    # where threshold was met
+    above_thresh = (img[:,:,0] > rgb_thresh[0]) \
+                & (img[:,:,1] > rgb_thresh[1]) \
+                & (img[:,:,2] > rgb_thresh[2])
+    # Index the array of zeros with the boolean array and set to 1
+    color_select[above_thresh] = 1
+    # Return the binary image
+    return color_select
+
 # Define a function to convert from image coords to rover coords
 
 def rover_coords(binary_img):
@@ -151,7 +165,6 @@ def perception_step(Rover):
     warped = perspect_transform(img, source, destination)
     colorrock = color_thresh_rock(warped)
     colornavigable = color_thresh_ground(warped)
-#    colorobstacle = color_thresh_obstacle(warped)
     colorobstacle = color_thresh_obstacle(warped)
     
     Rover.vision_image[:,:,0] = colorobstacle * 255
@@ -163,7 +176,6 @@ def perception_step(Rover):
     xpix_rock, ypix_rock = rover_coords(colorrock)
     scale = 10
     
-    # TODO: Verify whether this works
     navigable_x_world, navigable_y_world = pix_to_world(xpix_navigable, 
                                                         ypix_navigable,     
                                                         rover_xpos, 
@@ -190,29 +202,30 @@ def perception_step(Rover):
     Rover.worldmap[rock_y_world, rock_x_world, 1] += 1 #green color is rock
     Rover.worldmap[navigable_y_world, navigable_x_world, 2] += 1 #blue color is navigable
     
+    temp = Rover.worldmap[navigable_y_world]
+    print(len(temp))
+    # TODO: chec for travelled
+#    color_travelled = color_thresh_travelled(temp)    
+#    xpix_rover_travelled, ypix_rover_travelled = rover_coords(color_travelled)
+#    travelled_x_world, travelled_y_world = pix_to_world(xpix_rover_travelled, 
+#                      ypix_rover_travelled, 
+#                      rover_xpos, 
+#                      rover_ypos, 
+#                      rover_yaw, 
+#                      Rover.worldmap.shape[0], 
+#                      scale)
+    
+#    dist_travelled, angles_travelled = to_polar_coords(travelled_x_world, travelled_y_world)
+    
     dist, angles = to_polar_coords(xpix_navigable, ypix_navigable)
     dist_to_rock, angles_to_rock = to_polar_coords(xpix_rock, ypix_rock)
     
-    # TODO: Extra state means rock was previously found, but since flag is still true, means it failed to pick up
-#    if Rover.samples_seen = True:
-#        Rover.nav_angles = angles_to_rock
+    # Set the angles for navigation but also direction if there are rocks
 
     Rover.nav_dists = dist
     Rover.nav_angles = angles
     Rover.nav_dists_rock = dist_to_rock
     Rover.nav_angles_rock = angles_to_rock
         
-#    if len(dist_to_rock) >= Rover.go_rock and not Rover.picking_up:
-#        print('rock seen, and picking up:', Rover.picking_up)
-#        if Rover.picking_up:
-#            Rover.samples_seen_yet_pickup = False
-#        else: 
-#            Rover.samples_seen_yet_pickup = True
-#            Rover.nav_dists = dist_to_rock
-#            Rover.nav_angles = angles_to_rock
-#    
-#    elif not Rover.samples_seen_yet_pickup:
-#        Rover.nav_dists = dist
-#        Rover.nav_angles = angles
     
     return Rover

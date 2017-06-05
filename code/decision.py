@@ -7,6 +7,7 @@ countRobotIsStuck = 0
 previousAngle = 0
 
 def checkIfStuck(Rover):
+    # This function is to check whether it gets stuck. Especially when it bumps into a rock or at the side of the terrain
     global countRobotIsStuck
     global previousAngle
     # This function always check if the rover gets stuck, if it does, it would always need to get out first by doing a turn
@@ -61,35 +62,23 @@ def decision_step(Rover):
                 # TODO: is it possible to refine this
                 nav_angles_deg = (Rover.nav_angles * 180/np.pi)
 #                if ((max(nav_angles_deg) - np.mean(nav_angles_deg)) > 50):
-#                    print('to the side')
+#                    print('to the side', np.median(nav_angles_deg))
 #                    steering_deg = np.mean(nav_angles_deg) +  0.2*max(nav_angles_deg)
 #                else: 
 #                    steering_deg = np.mean(nav_angles_deg)
                 steering_deg = np.mean(nav_angles_deg)
                 Rover.steer = np.clip(steering_deg, -15, 15)
             # If there's a lack of navigable terrain pixels then go to 'stop' mode
-            elif (len(Rover.nav_angles) < Rover.stop_forward) or (np.mean(Rover.nav_dists) < 20):
+            elif (len(Rover.nav_angles) < Rover.stop_forward) or (max(Rover.nav_dists) < 50):
                 # Set mode to "stop" and hit the brakes!
                 Rover.throttle = 0
                 # Set brake to stored brake value
-                Rover.brake = Rover.brake_set
+                Rover.brake = Rover.brake_set/2
                 Rover.steer = 0
                 Rover.mode = 'stop'
                 
+            # Check if the gets stuck    
             Rover = checkIfStuck(Rover)
-            
-            # Always check if stuck in all method
-#            Rover = checkIfStuck(Rover)
-                    
-            # TODO: update to elif if necessary
-            
-#            if Rover.samples_seen_yet_pickup:
-#                print('change to slow mode')
-#                Rover.mode = 'slow'
-#                Rover.throttle = 0
-#                # Release the brake to allow turning
-#                Rover.brake = 0
-#                Rover.steer = np.clip(np.mean(Rover.nav_angles * 180/np.pi), -15, 15)
 
         # If we're already in "stop" mode then make different decisions
         elif Rover.mode == 'stop':
@@ -118,8 +107,8 @@ def decision_step(Rover):
                     # Set steer to mean angle
                     Rover.steer = np.clip(np.mean(Rover.nav_angles * 180/np.pi), -15, 15)
                     Rover.mode = 'forward'
-                
-                if (abs(np.mean(Rover.nav_angles * 180/np.pi)) > 30):
+                    
+                if (np.mean(Rover.nav_dists) < 20):
                     Rover.throttle = 0
                     # Release the brake to allow turning
                     Rover.brake = 0
@@ -138,17 +127,13 @@ def decision_step(Rover):
                 Rover.throttle = Rover.throttle_set
                 Rover.steer = np.clip(np.mean(Rover.nav_angles_rock * 180/np.pi), -15, 15)
                 
-                if Rover.vel > Rover.max_vel:
+                if Rover.vel > (Rover.max_vel/2):
                     Rover.throttle = 0
                     
             else:
-                Rover.throttle = Rover.throttle_set
-                # Release the brake to allow turning
-                Rover.brake = 0
-                # Turn range is +/- 15 degrees, when stopped the next line will induce 4-wheel turning
-                Rover.steer = -15 # Could be more clever here about which way to turn
+                Rover.mode = 'forward'
                     
-            # Always check if stuck in all method
+            # Always check if stuck
             Rover = checkIfStuck(Rover)
                     
     # Just to make the rover do something 
