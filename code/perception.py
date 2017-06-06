@@ -218,8 +218,8 @@ def perception_step(Rover):
     Rover.worldmap[rock_y_world, rock_x_world, 1] += 1 #green color is rock
     Rover.worldmap[navigable_y_world, navigable_x_world, 2] += 1 #blue color is navigable
     
-    temp = Rover.worldmap[navigable_y_world]
-    print(len(temp))
+#    temp = Rover.worldmap[navigable_y_world]
+#    print(len(temp))
     # TODO: chec for travelled
 #    color_travelled = color_thresh_travelled(temp)    
 #    xpix_rover_travelled, ypix_rover_travelled = rover_coords(color_travelled)
