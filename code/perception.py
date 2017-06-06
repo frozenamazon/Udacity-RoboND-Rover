@@ -115,6 +115,22 @@ def pix_to_world(xpix, ypix, xpos, ypos, yaw, world_size, scale):
     # Return the result
     return x_pix_world, y_pix_world
 
+def world_to_pix(x_pix_world, y_pix_world, xpos, ypos, yaw, world_size, scale):
+    
+    # undo translation
+    xpix_rot = (x_pix_world - xpos) * scale
+    ypix_rot = (y_pix_world - ypos) * scale
+    # undo rotation
+    yaw_rad = yaw * np.pi / 180
+    x_pix = (xpix_rot * np.cos(yaw_rad)) + (ypix_rot * np.sin(yaw_rad))
+    y_pix = - (xpix_rot * np.sin(yaw_rad)) + (ypix_rot * np.cos(yaw_rad)) 
+    
+    # Perform rotation, translation and clipping all at once
+    x_pix_small = np.clip(np.int_(x_pix), -world_size, world_size - 1)
+    y_pix_small = np.clip(np.int_(y_pix), -world_size, world_size - 1)
+    # Return the result
+    return x_pix_small, y_pix_small
+
 # Define a function to perform a perspective transform
 def perspect_transform(img, src, dst):
            

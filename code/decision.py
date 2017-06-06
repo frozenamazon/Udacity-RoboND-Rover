@@ -108,7 +108,7 @@ def decision_step(Rover):
                     Rover.steer = np.clip(np.mean(Rover.nav_angles * 180/np.pi), -15, 15)
                     Rover.mode = 'forward'
                     
-                if (np.mean(Rover.nav_dists) < 20):
+                if (np.mean(Rover.nav_dists) < 20) or abs(np.mean(Rav.nav_angles) > 45):
                     Rover.throttle = 0
                     # Release the brake to allow turning
                     Rover.brake = 0
