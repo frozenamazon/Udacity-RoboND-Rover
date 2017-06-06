@@ -20,12 +20,15 @@ def color_thresh_ground(img, rgb_thresh=(160, 160, 160)):
 def color_thresh_obstacle(img, rgb_thresh=(160, 160, 160)):
     # Create an array of zeros same xy size as img, but single channel
     color_select = np.zeros_like(img[:,:,0])
+    
+    upper_rgb_thresh = (160,160,160)
+    lower_rgb_thresh = (10,10,10)
     # Require that each pixel be above all three threshold values in RGB
     # above_thresh will now contain a boolean array with "True"
     # where threshold was met
-    above_thresh = (img[:,:,0] < rgb_thresh[0]) \
-                & (img[:,:,1] < rgb_thresh[1]) \
-                & (img[:,:,2] < rgb_thresh[2])
+    above_thresh =  ((img[:,:,0] >= lower_rgb_thresh[0]) & (img[:,:,0] <= upper_rgb_thresh[0])) \
+                & ((img[:,:,1] >= lower_rgb_thresh[1]) &(img[:,:,1] <= upper_rgb_thresh[1])) \
+                & ((img[:,:,2] >= lower_rgb_thresh[2]) & (img[:,:,2] <= upper_rgb_thresh[2]))
     # Index the array of zeros with the boolean array and set to 1
     color_select[above_thresh] = 1
     # Return the binary image
