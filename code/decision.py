@@ -17,14 +17,16 @@ def checkIfStuck(Rover):
     ypos = Rover.pos[1]
     
     if Rover.vel < 0.05 and (abs(previousXPos - xpos) < 2) and not Rover.picking_up:
-        print('may be stuck ', Rover.vel)
+        countRobotIsStuck += 1
+    elif (Rover.vel >= 2) & (abs(Rover.steer) == 15):
+        # It is going a roundabout
         countRobotIsStuck += 1
     else:
         countRobotIsStuck = 0
     
     previousXPos = xpos
     
-    if countRobotIsStuck > 20:
+    if countRobotIsStuck > 40:
         Rover.mode = 'stuck'
         countRobotIsStuck = 0
         stuckAtYaw = Rover.yaw
@@ -65,16 +67,13 @@ def decision_step(Rover):
                 else: # Else coast
                     Rover.throttle = 0
                 Rover.brake = 0
+                
                 # TODO: is it possible to refine this
                 # If there is a wide range of angle, always favour going left
                 nav_angles_deg = (Rover.nav_angles * 180/np.pi)
-                if ((max(nav_angles_deg) - np.mean(nav_angles_deg)) > 50):
-#                    print('to the side', np.median(nav_angles_deg))
-                    steering_deg = np.mean(nav_angles_deg) +  0.3 * max(nav_angles_deg)
-                else: 
-                    steering_deg = np.mean(nav_angles_deg)
-#                steering_deg = np.mean(nav_angles_deg)
+                steering_deg = np.mean(nav_angles_deg)
                 Rover.steer = np.clip(steering_deg, -15, 15)
+    
             # If there's a lack of navigable terrain pixels then go to 'stop' mode
             elif (len(Rover.nav_angles) < Rover.stop_forward) or (max(Rover.nav_dists) < 50):
                 # Set mode to "stop" and hit the brakes!
@@ -89,7 +88,6 @@ def decision_step(Rover):
 
         # If we're already in "stop" mode then make different decisions
         elif Rover.mode == 'stop':
-            print('stop:', len(Rover.nav_angles))
             # If we're in stop mode but still moving keep braking
             if Rover.vel > 0.2:
                 Rover.throttle = 0
@@ -116,25 +114,21 @@ def decision_step(Rover):
                 
                     
         elif Rover.mode == 'stuck':
-            print('stuck', Rover.yaw)
+            print('stuck')
             
             if (abs(stuckAtYaw - Rover.yaw) > 14):
                 Rover.mode = 'forward'
             
             Rover.throttle = 0
             Rover.brake = 0
-            Rover.steer = -15
+            Rover.steer = -30
                      
             if (len(Rover.nav_angles) > 10) & (abs(np.mean(Rover.nav_angles * 180/np.pi)) > 30):
-                Rover.throttle = 0
-                Rover.brake = 0
-                Rover.steer = np.mean(Rover.nav_angles * 180/np.pi)
-                
+                Rover.steer = abs(np.mean(Rover.nav_angles * 180/np.pi)) * -1
             
         
-        # If we're already in "slow" mode then it means there is a rock nearby and should inch closer
+        # If we're already in "slow" mode then it means there is a rock nearby and should inch closer, changing the target to the rock
         elif Rover.mode == 'slow':
-            print('slow:', len(Rover.nav_angles_rock))
             if len(Rover.nav_angles_rock) >= 1: 
 #                if not Rover.samples_seen_yet_pickup:
 #                    Rover.mode = 'forward'
@@ -154,7 +148,7 @@ def decision_step(Rover):
                     Rover.steer = np.clip(np.mean(Rover.nav_angles * 180/np.pi), -15, 15)
                     findRockCount = 0
                     
-                findRockCount++
+                findRockCount+=1
                     
                     
             # Always check if stuck
@@ -179,6 +173,7 @@ def decision_step(Rover):
         Rover.throttle = 0
         Rover.brake = 10
     
+    # Set it back slow mode to forward
     elif Rover.picking_up:
         Rover.mode = 'forward'
     

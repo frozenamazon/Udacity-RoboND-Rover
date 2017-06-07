@@ -22,7 +22,7 @@ def color_thresh_obstacle(img):
     color_select = np.zeros_like(img[:,:,0])
     
     upper_rgb_thresh = (80,80,80)
-    lower_rgb_thresh = (10,10,10)
+    lower_rgb_thresh = (20,20,20)
     # Require that each pixel be above all three threshold values in RGB
     # above_thresh will now contain a boolean array with "True"
     # where threshold was met
@@ -202,28 +202,20 @@ def perception_step(Rover):
                                               rover_yaw, 
                                               Rover.worldmap.shape[0], 
                                               scale)
-    
+        
     Rover.worldmap[obstacle_y_world, obstacle_x_world, 0] += 1 #red color is obstacle
     Rover.worldmap[rock_y_world, rock_x_world, 1] += 1 #green color is rock
     Rover.worldmap[navigable_y_world, navigable_x_world, 0] = 0 #blue color is navigable
     Rover.worldmap[navigable_y_world, navigable_x_world, 2] += 1 #blue color is navigable
     
-#    temp = Rover.worldmap[navigable_y_world]
-#    print(len(temp))
-    # TODO: chec for travelled
-#    color_travelled = color_thresh_travelled(temp)    
-#    xpix_rover_travelled, ypix_rover_travelled = rover_coords(color_travelled)
-#    travelled_x_world, travelled_y_world = pix_to_world(xpix_rover_travelled, 
-#                      ypix_rover_travelled, 
-#                      rover_xpos, 
-#                      rover_ypos, 
-#                      rover_yaw, 
-#                      Rover.worldmap.shape[0], 
-#                      scale)
-    
-#    dist_travelled, angles_travelled = to_polar_coords(travelled_x_world, travelled_y_world)
-    
-    dist, angles = to_polar_coords(xpix_navigable, ypix_navigable)
+
+    ypix_navigable_left_weighted = ypix_navigable
+    if (len(ypix_navigable) > 0):
+        # It tries to keep to the left, only enter if there is enough space for the rover
+        if (abs(np.max(ypix_navigable) - np.mean(ypix_navigable)) > 15):
+            # It tries to keep 1/3 more to the left
+            ypix_navigable_left_weighted = (2*np.mean(ypix_navigable) + np.max(ypix_navigable))/3
+    dist, angles = to_polar_coords(xpix_navigable, ypix_navigable_left_weighted)
     dist_to_rock, angles_to_rock = to_polar_coords(xpix_rock, ypix_rock)
     
     # Set the angles for navigation but also direction if there are rocks
