@@ -133,6 +133,7 @@ def create_output_images(Rover):
               cv2.FONT_HERSHEY_COMPLEX, 0.4, (255, 255, 255), 1)
     cv2.putText(map_add,"Rocks: "+str(Rover.samples_found), (0, 55), 
               cv2.FONT_HERSHEY_COMPLEX, 0.4, (255, 255, 255), 1)
+    print('fidelity',fidelity)
 
     # Convert map and vision image to base64 strings for sending to server
     pil_img = Image.fromarray(map_add.astype(np.uint8))

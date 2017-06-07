@@ -3,7 +3,7 @@ import cv2
 
 # Identify pixels above the threshold
 # Threshold of RGB > 160 does a nice job of identifying ground pixels only
-def color_thresh_ground(img, rgb_thresh=(160, 160, 160)):
+def color_thresh_ground(img, rgb_thresh=(180, 180, 180)):
     # Create an array of zeros same xy size as img, but single channel
     color_select = np.zeros_like(img[:,:,0])
     # Require that each pixel be above all three threshold values in RGB
@@ -17,11 +17,11 @@ def color_thresh_ground(img, rgb_thresh=(160, 160, 160)):
     # Return the binary image
     return color_select
 
-def color_thresh_obstacle(img, rgb_thresh=(160, 160, 160)):
+def color_thresh_obstacle(img):
     # Create an array of zeros same xy size as img, but single channel
     color_select = np.zeros_like(img[:,:,0])
     
-    upper_rgb_thresh = (160,160,160)
+    upper_rgb_thresh = (80,80,80)
     lower_rgb_thresh = (10,10,10)
     # Require that each pixel be above all three threshold values in RGB
     # above_thresh will now contain a boolean array with "True"
@@ -50,20 +50,6 @@ def color_thresh_rock(img):
     
     # Return the binary image
     return color_select_rgb
-
-def color_thresh_travelled(img, rgb_thresh=(0, 0, 0)):
-    # Create an array of zeros same xy size as img, but single channel
-    color_select = np.zeros_like(img[:,:,0])
-    # Require that each pixel be above all three threshold values in RGB
-    # above_thresh will now contain a boolean array with "True"
-    # where threshold was met
-    above_thresh = (img[:,:,0] > rgb_thresh[0]) \
-                & (img[:,:,1] > rgb_thresh[1]) \
-                & (img[:,:,2] > rgb_thresh[2])
-    # Index the array of zeros with the boolean array and set to 1
-    color_select[above_thresh] = 1
-    # Return the binary image
-    return color_select
 
 # Define a function to convert from image coords to rover coords
 
@@ -219,6 +205,7 @@ def perception_step(Rover):
     
     Rover.worldmap[obstacle_y_world, obstacle_x_world, 0] += 1 #red color is obstacle
     Rover.worldmap[rock_y_world, rock_x_world, 1] += 1 #green color is rock
+    Rover.worldmap[navigable_y_world, navigable_x_world, 0] = 0 #blue color is navigable
     Rover.worldmap[navigable_y_world, navigable_x_world, 2] += 1 #blue color is navigable
     
 #    temp = Rover.worldmap[navigable_y_world]

@@ -4,27 +4,31 @@ import numpy as np
 # commands based on the output of the perception_step() function
 
 countRobotIsStuck = 0
-previousAngle = 0
+previousXPos = 0
+stuckAtYaw = 0
 
 def checkIfStuck(Rover):
     # This function is to check whether it gets stuck. Especially when it bumps into a rock or at the side of the terrain
     global countRobotIsStuck
-    global previousAngle
+    global previousXPos
+    global stuckAtYaw
     # This function always check if the rover gets stuck, if it does, it would always need to get out first by doing a turn
-    meanAngle = np.mean(Rover.nav_angles * 180/np.pi)
-    if Rover.vel < 0.05 and (abs(meanAngle - previousAngle) < 2) and not Rover.picking_up:
+    xpos = Rover.pos[0]
+    ypos = Rover.pos[1]
+    
+    if Rover.vel < 0.05 and (abs(previousXPos - xpos) < 2) and not Rover.picking_up:
         print('may be stuck ', Rover.vel)
         countRobotIsStuck += 1
     else:
         countRobotIsStuck = 0
-        Rover.isStuck = False
     
-    previousAngle = meanAngle
+    previousXPos = xpos
     
     if countRobotIsStuck > 20:
-        print('It probably is stuck')
-        Rover.mode = 'stop'
+        Rover.mode = 'stuck'
         countRobotIsStuck = 0
+        stuckAtYaw = Rover.yaw
+        
     return Rover
 
 def decision_step(Rover):
@@ -34,6 +38,8 @@ def decision_step(Rover):
     
     # Example:
     # Check if we have vision data to make decisions with
+    findRockCount = 0
+    
     if Rover.nav_angles is not None:
         
         # Check for Rover.mode status
@@ -42,6 +48,7 @@ def decision_step(Rover):
                 # Within navigable range too
                 if (np.mean(Rover.nav_angles_rock) > min(Rover.nav_angles)) & (np.mean(Rover.nav_angles_rock) < max(Rover.nav_angles)):
                     print('change to slow mode')
+                    findRockCount = 0
                     Rover.mode = 'slow'
                     Rover.throttle = 0
                     # Release the brake to allow turning
@@ -58,15 +65,15 @@ def decision_step(Rover):
                 else: # Else coast
                     Rover.throttle = 0
                 Rover.brake = 0
-                # Set steering to average angle clipped to the range +/- 15
                 # TODO: is it possible to refine this
+                # If there is a wide range of angle, always favour going left
                 nav_angles_deg = (Rover.nav_angles * 180/np.pi)
-#                if ((max(nav_angles_deg) - np.mean(nav_angles_deg)) > 50):
+                if ((max(nav_angles_deg) - np.mean(nav_angles_deg)) > 50):
 #                    print('to the side', np.median(nav_angles_deg))
-#                    steering_deg = np.mean(nav_angles_deg) +  0.2*max(nav_angles_deg)
-#                else: 
-#                    steering_deg = np.mean(nav_angles_deg)
-                steering_deg = np.mean(nav_angles_deg)
+                    steering_deg = np.mean(nav_angles_deg) +  0.3 * max(nav_angles_deg)
+                else: 
+                    steering_deg = np.mean(nav_angles_deg)
+#                steering_deg = np.mean(nav_angles_deg)
                 Rover.steer = np.clip(steering_deg, -15, 15)
             # If there's a lack of navigable terrain pixels then go to 'stop' mode
             elif (len(Rover.nav_angles) < Rover.stop_forward) or (max(Rover.nav_dists) < 50):
@@ -95,11 +102,7 @@ def decision_step(Rover):
                     Rover.throttle = 0
                     # Release the brake to allow turning
                     Rover.brake = 0
-                    # Turn range is +/- 15 degrees, when stopped the next line will induce 4-wheel turning
-                    sign = 1
-                    if(len(Rover.nav_angles)):
-                        sign = np.sign(np.mean(Rover.nav_angles))
-                    Rover.steer = sign*15 # Could be more clever here about which way to turn
+                    Rover.steer = -15 # Could be more clever here about which way to turn
                 
                 # If we're stopped but see sufficient navigable terrain in front then go!
                 if (len(Rover.nav_angles) >= Rover.go_forward):
@@ -110,20 +113,26 @@ def decision_step(Rover):
                     # Set steer to mean angle
                     Rover.steer = np.clip(np.mean(Rover.nav_angles * 180/np.pi), -15, 15)
                     Rover.mode = 'forward'
+                
                     
-                if (np.mean(Rover.nav_dists) < 30) or (abs(np.mean(Rover.nav_angles * 180/np.pi)) > 30):
-                    Rover.throttle = 0
-                    # Release the brake to allow turning
-                    Rover.brake = 0
-                    # Turn range is +/- 15 degrees, when stopped the next line will induce 4-wheel turning
-                    sign = 1
-                    if(len(Rover.nav_angles)):
-                        sign = np.sign(np.mean(Rover.nav_angles))
-                    Rover.steer = sign*15 # Could be more clever here about which way to turn
-                    Rover.mode = 'stop'
+        elif Rover.mode == 'stuck':
+            print('stuck', Rover.yaw)
+            
+            if (abs(stuckAtYaw - Rover.yaw) > 14):
+                Rover.mode = 'forward'
+            
+            Rover.throttle = 0
+            Rover.brake = 0
+            Rover.steer = -15
+                     
+            if (len(Rover.nav_angles) > 10) & (abs(np.mean(Rover.nav_angles * 180/np.pi)) > 30):
+                Rover.throttle = 0
+                Rover.brake = 0
+                Rover.steer = np.mean(Rover.nav_angles * 180/np.pi)
+                
+            
         
         # If we're already in "slow" mode then it means there is a rock nearby and should inch closer
-        # An extra mode, so we do not clash with forward
         elif Rover.mode == 'slow':
             print('slow:', len(Rover.nav_angles_rock))
             if len(Rover.nav_angles_rock) >= 1: 
@@ -137,7 +146,16 @@ def decision_step(Rover):
                     Rover.throttle = 0
                     
             else:
-                Rover.mode = 'forward'
+                
+                if (findRockCount > 10):
+                # Sometimes the rock is missed, rather let it go forward then an infinite loop trying to find the rock, try for 10 times
+                    Rover.mode = 'forward'
+                    Rover.throttle = Rover.throttle_set
+                    Rover.steer = np.clip(np.mean(Rover.nav_angles * 180/np.pi), -15, 15)
+                    findRockCount = 0
+                    
+                findRockCount++
+                    
                     
             # Always check if stuck
             Rover = checkIfStuck(Rover)

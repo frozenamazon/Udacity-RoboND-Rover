@@ -53,6 +53,8 @@ class RoverState():
         self.nav_dists = None # Distances of navigable terrain pixels
         self.nav_angles_rock = [] # Angles of navigable terrain pixels
         self.nav_dists_rock = [] # Distances of navigable terrain pixels
+        self.nav_dists_prev = None
+        self.nav_angles_prev = None
         self.ground_truth = ground_truth_3d # Ground truth worldmap
         self.mode = 'forward' # Current mode (can be forward or stop)
         self.throttle_set = 0.2 # Throttle setting when accelerating
@@ -79,6 +81,7 @@ class RoverState():
         self.near_sample = 0 # Will be set to telemetry value data["near_sample"]
         self.picking_up = 0 # Will be set to telemetry value data["picking_up"]
         self.send_pickup = False # Set to True to trigger rock pickup
+        self.isStuck = False
 # Initialize our rover 
 Rover = RoverState()
 
