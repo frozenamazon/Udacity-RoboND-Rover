@@ -130,8 +130,6 @@ def decision_step(Rover):
         # If we're already in "slow" mode then it means there is a rock nearby and should inch closer, changing the target to the rock
         elif Rover.mode == 'slow':
             if len(Rover.nav_angles_rock) >= 1: 
-#                if not Rover.samples_seen_yet_pickup:
-#                    Rover.mode = 'forward'
                 
                 Rover.throttle = Rover.throttle_set
                 Rover.steer = np.clip(np.mean(Rover.nav_angles_rock * 180/np.pi), -15, 15)
