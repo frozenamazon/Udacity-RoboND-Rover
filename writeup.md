@@ -54,7 +54,7 @@ The process_image function would do the following step to produces a video
 8. The worldmap is overlayed wtih different color for obstacle, navigable and rock for inspection purposes
 
 
-#### 2. Processed video
+#### 3. Processed video
 https://github.com/frozenamazon/RoboND-Rover-Project/blob/master/output/test_mapping.mp4
 
 
@@ -62,32 +62,31 @@ https://github.com/frozenamazon/RoboND-Rover-Project/blob/master/output/test_map
 To allow autonous navigation, there are two parts; perception - how it would perceive and analyse the environment, decision - how it decides to react based on information it has received
 
 #### 1. Perception
-The main step in perception is to analyse the rover's image.
-1. An image of the path is analysed. 
-2. 4 points are taken, consider like a grid, and it is warped. Image warping is the process of digitally manipulating an image such that any shapes portrayed in the image have been significantly distorted [Wikipedia]
-3. The image is warped as if the image is taken from above, using a size of 10x10 with an offset of 6 (to accommodate the size of the robot). 
-4. The warped image is filtered by applying a threshold for 3 scenarios: navigable route, obstacle and rock
-5. Filtered images are rotated to fit the rover coordinates, with positive x at the bottom going right and y going up
-6. As the current images represent one portion of the map, a pix_to_world function is used to  fit the part of the image onto the world map
-7. The worldmap is 10 times the size of the map (an assumption), a 1/10 scale is used
-8. The worldmap is overlayed wtih different color for obstacle, navigable and rock for inspection purposes
+  The main step in perception is to analyse the rover's image.
+  1. An image of the path is analysed. 
+  2. 4 points are taken, consider like a grid, and it is warped. Image warping is the process of digitally manipulating an image such that any shapes portrayed in the image have been significantly distorted [Wikipedia]
+  3. The image is warped as if the image is taken from above, using a size of 10x10 with an offset of 6 (to accommodate the size of the robot). 
+  4. The warped image is filtered by applying a threshold for 3 scenarios: navigable route, obstacle and rock
+  5. Filtered images are rotated to fit the rover coordinates, with positive x at the bottom going right and y going up
+  6. As the current images represent one portion of the map, a pix_to_world function is used to  fit the part of the image onto the world map
+  7. The worldmap is 10 times the size of the map (an assumption), a 1/10 scale is used
+  8. The worldmap is overlayed wtih different color for obstacle, navigable and rock for inspection purposes
 
-After processing the images, it would check the width of the navigable path. If it is a wide path, it would try to stay towards the left, mimicking a wall crawler. If it is a narrow path, it would just take the mean to avoid it from being stuck. It would return four values nav_angles_rock and nav_dists_rock, nav_angles and nav_dists. 
+  After processing the images, it would check the width of the navigable path. If it is a wide path, it would try to stay towards the left, mimicking a wall crawler. If it is a narrow path, it would just take the mean to avoid it from being stuck. It would return four values nav_angles_rock and nav_dists_rock, nav_angles and nav_dists. 
 
 #### 2. Decision
-There are four modes
-* Forward
-Most of the time the rover is in this mode. It would check whether there is a yellow rock nearby. If there is it would update the 'slow' mode to move towards the rock. Else it would move forward according to the navigables until it sees a deadend (minimum amount of navigable)
+  There are four modes
+  * Forward
+  Most of the time the rover is in this mode. It would check whether there is a yellow rock nearby. If there is it would update the 'slow' mode to move towards the rock. Else it would move forward according to the navigables until it sees a deadend (minimum amount of navigable)
 
-* Stop
-This mode means stop. The rover is stopped for reasons because it is stuck or sees a deadend. It would brake if there is a speed of more than 0.2. Else it would rotate on the spot until it sees a navigable path
+  * Stop
+  This mode means stop. The rover is stopped for reasons because it is stuck or sees a deadend. It would brake if there is a speed of more than 0.2. Else it would rotate on the spot until it sees a navigable path
 
-* Slow
-This mode represents there is a yellow rock and it should try to go slowly towards the yellow rock. It checks whether the yellow rock can still be found, if not it would change back to forward mode and continue the journey. It takes the nav_angles_rock and nav_dists_rock instead of nav_angles and nav_dists. However nav_angles_rock is compared to nav_angles, ensuring that the angle to the yellow rock is within a navigable angle and not through an obstacle
+  * Slow
+  This mode represents there is a yellow rock and it should try to go slowly towards the yellow rock. It checks whether the yellow rock can still be found, if not it would change back to forward mode and continue the journey. It takes the nav_angles_rock and nav_dists_rock instead of nav_angles and nav_dists. However nav_angles_rock is compared to nav_angles, ensuring that the angle to the yellow rock is within a navigable angle and not through an obstacle
 
-* Stuck
-This mode it is usually stuck. It would release the throttle and the brake, allowing it to turn -30. It would switch back to forward mode once it is no longer stuck. The way it decides is to check the yaw when it is stuck compared to the current yaw.
-
+  * Stuck
+  This mode it is usually stuck. It would release the throttle and the brake, allowing it to turn -30. It would switch back to forward mode once it is no longer stuck. The way it decides is to check the yaw when it is stuck compared to the current yaw.
 
 
 ### Pipeline of failure
