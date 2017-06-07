@@ -43,15 +43,15 @@ A threshold of RGB(180,180,180) as a lower range to detect the ground based on t
 The process_image function would do the following step to produces a video
 * Input: ground truth, image from rover
 * Output: Warped image and worldmap
-* Process:
-1. An image of the path is analysed. 
-2. 4 points are taken, consider like a grid, and it is warped. Image warping is the process of digitally manipulating an image such that any shapes portrayed in the image have been significantly distorted [Wikipedia]
-3. The image is warped as if the image is taken from above, using a size of 10x10 with an offset of 6 (to accommodate the size of the robot). 
-4. The warped image is filtered by applying a threshold for 3 scenarios: navigable route, obstacle and rock
-5. Filtered images are rotated to fit the rover coordinates, with positive x at the bottom going right and y going up
-6. As the current images represent one portion of the map, a pix_to_world function is used to  fit the part of the image onto the world map
-7. The worldmap is 10 times the size of the map (an assumption), a 1/10 scale is used
-8. The worldmap is overlayed wtih different color for obstacle, navigable and rock for inspection purposes
+
+* An image of the path is analysed. 
+* 4 points are taken, consider like a grid, and it is warped. Image warping is the process of digitally manipulating an image such that any shapes portrayed in the image have been significantly distorted [Wikipedia]
+* The image is warped as if the image is taken from above, using a size of 10x10 with an offset of 6 (to accommodate the size of the robot). 
+* The warped image is filtered by applying a threshold for 3 scenarios: navigable route, obstacle and rock
+* Filtered images are rotated to fit the rover coordinates, with positive x at the bottom going right and y going up
+* As the current images represent one portion of the map, a pix_to_world function is used to  fit the part of the image onto the world map
+* The worldmap is 10 times the size of the map (an assumption), a 1/10 scale is used
+* The worldmap is overlayed wtih different color for obstacle, navigable and rock for inspection purposes
 
 
 #### 3. Processed video
