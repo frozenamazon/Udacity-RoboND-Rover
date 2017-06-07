@@ -6,7 +6,7 @@
 [//]: # (Image References)
 
 [image1]: ./misc/rover_image.jpg
-[image2]: ./final_rover_image.png
+[image2]: ./misc/final_rover_image.png
 [image3]: ./calibration_images/example_rock1.jpg 
 
 
@@ -28,12 +28,13 @@ Video: https://youtu.be/n2-_8oubxn4
 ### Notebook Analysis
 
 #### 1. Color thresholding
-# Thresholding for rocks
+* Thresholding for rocks
 A threshold with a range from RGB(120,100,0) and RGB(180,180,70) is used to detect rocks. This is a range for yellow color
-# Thresholding for obstacles
+
+* Thresholding for obstacles
 A threshold with a range from RGB(10,10,10) and RGB(80,80,80) is used to detect obstacle. A lower range is used as some part cant be seen by the rover and this returns as black
 
-# Thresholding for ground
+* Thresholding for ground
 A threshold of RGB(180,180,180) as a lower range to detect the ground based on the image
 
 ![alt text][image1]
@@ -89,14 +90,14 @@ This mode it is usually stuck. It would release the throttle and the brake, allo
 
 
 
-#### Pipeline of failure
+### Pipeline of failure
 1. The rover has some problems navigating around tight areas with plenty of big stones. As it takes the mean of the angles, if the big stones is right in the front with angle of -5deg to 5deg, and with a clear path between it, it would get the mean of these angles and drive straight into it
 2. The rover encounters problem it large area where it goes around in circles infinitely
 3. Upon collecting yellow rocks, especially those very close to the wall, it takes a while to continue its journey after as it may be stuck
 4. Rocks in areas surrounded by big stones causes the rover to get stuck between the big stones. It kinda goes through the stone, sees a nvigable path, failing to detect the obstacles, seeing only blue not red, but it would be able to proceed through
 5. Many times it found the yellow rock , closing it to the yellow rock , the rock disappears from the vision
 
-#### Improvements
+### Improvements
 1. One way which I have not managed to work out is feeding the information back from the worldmap that has been populated from previous data. Anything that has been 'visited' with be blue, [:,:,2] > 0. From the worldmap, it should be possible to create another function that shows the portion of the worldmap, compare it to the current map and decide the navigable (which is any route opposite to what has been visited previously)
 2. Realising the rover is going in circle, which is actually stuck
 3. Always choosing the left path when it sees a fork, and being able to decide it is a fork
